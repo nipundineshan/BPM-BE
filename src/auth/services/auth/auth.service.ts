@@ -16,11 +16,12 @@ export class AuthService {
   ) {}
 
   async register(registerDto: RegisterDto) {
-    const { email, password, walletAddress, role } = registerDto;
+    const { email, password, walletAddress, role, name } = registerDto;
     const hashedPassword = await bcrypt.hash(password, 10);
     
     const user = this.userRepository.create({
       email,
+      name,
       password: hashedPassword,
       walletAddress,
       role: role || 'user',
@@ -34,7 +35,7 @@ export class AuthService {
     const { email, password } = loginDto;
     const user = await this.userRepository.findOne({ 
       where: { email },
-      select: ['id', 'email', 'password', 'role', 'walletAddress']
+      select: ['id', 'email', 'password', 'role', 'walletAddress', 'name']
     });
 
     if (user && (await bcrypt.compare(password, user.password))) {
@@ -44,6 +45,7 @@ export class AuthService {
         user: {
           id: user.id,
           email: user.email,
+          name: user.name,
           role: user.role,
           walletAddress: user.walletAddress
         }
