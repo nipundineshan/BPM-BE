@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User, UserStatus } from '../../entities/user.entity/user.entity';
+import { User, UserStatus, UserRole } from '../../entities/user.entity/user.entity';
 
 @Injectable()
 export class UsersService {
@@ -24,6 +24,10 @@ export class UsersService {
 
   async findAll(): Promise<User[]> {
     return this.userRepository.find();
+  }
+
+  async findByRole(role: UserRole): Promise<User[]> {
+    return this.userRepository.find({ where: { role } });
   }
 
   async findOne(id: string): Promise<User> {
@@ -52,9 +56,19 @@ export class UsersService {
     return this.userRepository.save(user);
   }
 
-  async setStatus(id: string, status: UserStatus): Promise<User> {
+  async setStatus(id: string, status: UserStatus, approvedBy?: string): Promise<User> {
     const user = await this.findOne(id);
     user.status = status;
+    if (status === UserStatus.APPROVED) {
+      user.approvedAt = new Date();
+      user.approvedBy = approvedBy;
+    }
+    return this.userRepository.save(user);
+  }
+
+  async toggleActive(id: string, isActive: boolean): Promise<User> {
+    const user = await this.findOne(id);
+    user.isActive = isActive;
     return this.userRepository.save(user);
   }
 
@@ -62,6 +76,12 @@ export class UsersService {
     await this.userRepository.update(id, {
       lastLogin: new Date(),
       loginCount: () => 'loginCount + 1',
+    });
+  }
+
+  async getPendingUsers(): Promise<User[]> {
+    return this.userRepository.find({
+      where: { status: UserStatus.PENDING_APPROVAL, role: UserRole.USER }
     });
   }
 }

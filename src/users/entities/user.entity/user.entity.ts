@@ -2,14 +2,16 @@ import { Entity, PrimaryGeneratedColumn, Column, OneToMany, CreateDateColumn, Up
 import type { Plot } from '../../../plots/entities/plot.entity/plot.entity';
 
 export enum UserRole {
-  ADMIN = 'admin',
-  USER = 'user',
+  SUPER_ADMIN = 'SUPER_ADMIN',
+  ADMIN = 'ADMIN',
+  USER = 'USER',
 }
 
 export enum UserStatus {
-  ACTIVE = 'active',
-  BLOCKED = 'blocked',
-  PENDING = 'pending',
+  PENDING_APPROVAL = 'PENDING_APPROVAL',
+  APPROVED = 'APPROVED',
+  REJECTED = 'REJECTED',
+  BLOCKED = 'BLOCKED',
 }
 
 @Entity('users')
@@ -51,9 +53,18 @@ export class User {
   @Column({
     type: 'enum',
     enum: UserStatus,
-    default: UserStatus.ACTIVE,
+    default: UserStatus.PENDING_APPROVAL,
   })
   status: UserStatus;
+
+  @Column({ default: true })
+  isActive: boolean;
+
+  @Column({ nullable: true })
+  approvedBy: string;
+
+  @Column({ nullable: true })
+  approvedAt: Date;
 
   @Column({ nullable: true })
   lastLogin: Date;

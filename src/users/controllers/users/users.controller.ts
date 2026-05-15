@@ -41,7 +41,7 @@ export class UsersController {
 @Controller('admin/users')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(UserRole.ADMIN)
+@Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
 export class AdminUsersController {
   constructor(private usersService: UsersService) {}
 
@@ -52,7 +52,7 @@ export class AdminUsersController {
   }
 
   @Patch(':id/status')
-  @ApiOperation({ summary: 'Update user status (block/unblock)' })
+  @ApiOperation({ summary: 'Update user status' })
   async updateStatus(@Param('id') id: string, @Body('status') status: UserStatus) {
     return this.usersService.setStatus(id, status);
   }
