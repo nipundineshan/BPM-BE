@@ -1,7 +1,7 @@
-import { Injectable, BadRequestException, Logger } from '@nestjs/common';
+import { Injectable, BadRequestException, Logger, NotFoundException } from '@nestjs/common';
 import { BlockchainService } from '../../../blockchain/blockchain.service';
 import { PlotsService } from '../../../plots/services/plots/plots.service';
-import { ethers } from 'ethers';
+import { PlotStatus } from '../../../plots/entities/plot.entity/plot.entity';
 
 @Injectable()
 export class NftService {
@@ -15,12 +15,12 @@ export class NftService {
   async mintPropertyNft(plotId: string) {
     const plot = await this.plotsService.findOne(plotId);
     
-    if (plot.isMinted) {
+    if (plot.status === PlotStatus.MINTED) {
       throw new BadRequestException('Property already minted as NFT');
     }
 
-    if (!plot.ipfsHash) {
-      throw new BadRequestException('Property metadata must be uploaded to IPFS before minting');
+    if (plot.status !== PlotStatus.APPROVED) {
+      throw new BadRequestException('Property must be approved before minting');
     }
 
     if (!plot.owner.walletAddress) {
@@ -28,20 +28,35 @@ export class NftService {
     }
 
     try {
+      // 1. Upload metadata to IPFS if not already done
+      let ipfsCid = plot.ipfsCid;
+      if (!ipfsCid) {
+        ipfsCid = await this.plotsService.uploadMetadataToIpfs(plotId);
+      }
+
       this.logger.log(`Minting NFT for plot ${plotId} to ${plot.owner.walletAddress}`);
       
+      // 2. Call smart contract
       const receipt = await this.blockchainService.mintProperty(
         plot.owner.walletAddress,
-        `ipfs://${plot.ipfsHash}`
+        `ipfs://${ipfsCid}`
       );
 
       if (!receipt) {
         throw new Error('Transaction failed or was dropped');
       }
 
+      // 3. Extract Token ID from receipt (event Transfer)
+      // For simplicity, let's assume we can get it or just use the counter
+      const tokenId = await this.blockchainService.getTokenCounter();
+
+      // 4. Update plot status
+      await this.plotsService.markAsMinted(plotId, (tokenId - 1n).toString(), receipt.hash);
+
       return {
         message: 'Minting transaction successful',
         transactionHash: receipt.hash,
+        tokenId: (tokenId - 1n).toString(),
         blockNumber: receipt.blockNumber
       };
     } catch (error) {
@@ -50,6 +65,16 @@ export class NftService {
     }
   }
 
-  // Verification and Transfer logic removed to align with existing contract ABI
-  // If the contract is updated with these functions, they can be re-added.
+  async getAllNfts() {
+    // In a real app, you might fetch from blockchain or just query minted plots
+    return this.plotsService.findByStatus(PlotStatus.MINTED);
+  }
+
+  async getNftById(id: string) {
+    const plot = await this.plotsService.findOne(id);
+    if (plot.status !== PlotStatus.MINTED) {
+      throw new NotFoundException('NFT not found');
+    }
+    return plot;
+  }
 }

@@ -1,7 +1,7 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User } from '../../entities/user.entity/user.entity';
+import { User, UserStatus } from '../../entities/user.entity/user.entity';
 
 @Injectable()
 export class UsersService {
@@ -9,6 +9,22 @@ export class UsersService {
     @InjectRepository(User)
     private userRepository: Repository<User>,
   ) {}
+
+  async create(userData: Partial<User>): Promise<User> {
+    if (!userData.email) {
+      throw new BadRequestException('Email is required');
+    }
+    const existingUser = await this.findByEmail(userData.email);
+    if (existingUser) {
+      throw new BadRequestException('User with this email already exists');
+    }
+    const user = this.userRepository.create(userData);
+    return this.userRepository.save(user);
+  }
+
+  async findAll(): Promise<User[]> {
+    return this.userRepository.find();
+  }
 
   async findOne(id: string): Promise<User> {
     const user = await this.userRepository.findOne({ 
@@ -23,9 +39,29 @@ export class UsersService {
     return this.userRepository.findOne({ where: { email } });
   }
 
-  async updateWallet(id: string, walletAddress: string): Promise<User> {
+  async findByEmailWithPassword(email: string): Promise<User | null> {
+    return this.userRepository.createQueryBuilder('user')
+      .addSelect('user.password')
+      .where('user.email = :email', { email })
+      .getOne();
+  }
+
+  async updateProfile(id: string, updateData: Partial<User>): Promise<User> {
     const user = await this.findOne(id);
-    user.walletAddress = walletAddress;
+    Object.assign(user, updateData);
     return this.userRepository.save(user);
+  }
+
+  async setStatus(id: string, status: UserStatus): Promise<User> {
+    const user = await this.findOne(id);
+    user.status = status;
+    return this.userRepository.save(user);
+  }
+
+  async updateLoginStats(id: string): Promise<void> {
+    await this.userRepository.update(id, {
+      lastLogin: new Date(),
+      loginCount: () => 'loginCount + 1',
+    });
   }
 }

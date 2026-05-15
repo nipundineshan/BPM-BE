@@ -21,7 +21,7 @@ export class BlockchainService implements OnModuleInit {
   onModuleInit() {
     const rpcUrl = this.configService.get<string>('SEPOLIA_RPC_URL');
     const privateKey = this.configService.get<string>('PRIVATE_KEY');
-    const contractAddress = "0x8E5364096036b4226780e6bD77c5f65585a42bF1";
+    const contractAddress = this.configService.get<string>('CONTRACT_ADDRESS') || "0x8E5364096036b4226780e6bD77c5f65585a42bF1";
 
     if (!rpcUrl || !privateKey || !contractAddress) {
       this.logger.warn('Blockchain configuration missing. Service will not be fully functional.');

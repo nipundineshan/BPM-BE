@@ -2,7 +2,7 @@ import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import { BlockchainService } from '../blockchain/blockchain.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Plot } from '../plots/entities/plot.entity/plot.entity';
+import { Plot, PlotStatus } from '../plots/entities/plot.entity/plot.entity';
 
 @Injectable()
 export class SyncService implements OnModuleInit {
@@ -29,16 +29,14 @@ export class SyncService implements OnModuleInit {
       
       if (from === '0x0000000000000000000000000000000000000000') {
         // This is a Mint event
-        // We still need to find the plot by looking up the tokenURI from the contract
-        // since the Transfer event itself doesn't include the URI.
         try {
           const tokenURI = await contract.getFunction('tokenURI')(tokenId);
-          const ipfsHash = tokenURI.replace('ipfs://', '');
-          const plot = await this.plotRepository.findOne({ where: { ipfsHash } });
+          const ipfsCid = tokenURI.replace('ipfs://', '');
+          const plot = await this.plotRepository.findOne({ where: { ipfsCid } });
           
           if (plot) {
-            plot.tokenId = Number(tokenId);
-            plot.isMinted = true;
+            plot.tokenId = tokenId.toString();
+            plot.status = PlotStatus.MINTED;
             await this.plotRepository.save(plot);
             this.logger.log(`Updated plot ${plot.id} with TokenID ${tokenId}`);
           }

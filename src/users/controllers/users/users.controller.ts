@@ -1,9 +1,21 @@
-import { Controller, Get, UseGuards, Request, Body, Patch } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Put,
+  Body,
+  UseGuards,
+  Request,
+  Param,
+  Patch,
+} from '@nestjs/common';
 import { UsersService } from '../../services/users/users.service';
 import { JwtAuthGuard } from '../../../auth/jwt-auth.guard';
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiBody } from '@nestjs/swagger';
+import { RolesGuard } from '../../../auth/roles.guard';
+import { Roles } from '../../../auth/roles.decorator';
+import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import { UserRole, UserStatus } from '../../entities/user.entity/user.entity';
 
-@ApiTags('User Profile')
+@ApiTags('Users')
 @Controller('users')
 export class UsersController {
   constructor(private usersService: UsersService) {}
@@ -12,16 +24,36 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @Get('profile')
   @ApiOperation({ summary: 'Get current user profile' })
-  getProfile(@Request() req) {
-    return this.usersService.findOne(req.user.userId);
+  async getProfile(@Request() req) {
+    return this.usersService.findOne(req.user.id);
   }
 
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
-  @Patch('wallet')
-  @ApiOperation({ summary: 'Update user wallet address' })
-  @ApiBody({ schema: { properties: { walletAddress: { type: 'string', example: '0x123...' } } } })
-  updateWallet(@Request() req, @Body('walletAddress') walletAddress: string) {
-    return this.usersService.updateWallet(req.user.userId, walletAddress);
+  @Put('profile')
+  @ApiOperation({ summary: 'Update current user profile' })
+  async updateProfile(@Request() req, @Body() updateData: any) {
+    return this.usersService.updateProfile(req.user.id, updateData);
+  }
+}
+
+@ApiTags('Admin User Management')
+@Controller('admin/users')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(UserRole.ADMIN)
+export class AdminUsersController {
+  constructor(private usersService: UsersService) {}
+
+  @Get()
+  @ApiOperation({ summary: 'List all users' })
+  async findAll() {
+    return this.usersService.findAll();
+  }
+
+  @Patch(':id/status')
+  @ApiOperation({ summary: 'Update user status (block/unblock)' })
+  async updateStatus(@Param('id') id: string, @Body('status') status: UserStatus) {
+    return this.usersService.setStatus(id, status);
   }
 }

@@ -1,34 +1,44 @@
-import {
-  IsEmail,
-  IsString,
-  MinLength,
-  IsOptional,
-  IsEnum,
-} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { IsEmail, IsNotEmpty, IsString, MinLength, IsOptional, IsEnum } from 'class-validator';
+import { UserRole } from '../../../users/entities/user.entity/user.entity';
 
 export class RegisterDto {
-  @ApiProperty({ example: 'user@example.com' })
+  @ApiProperty({ example: 'John Doe' })
+  @IsString()
+  @IsNotEmpty()
+  fullName: string;
+
+  @ApiProperty({ example: 'john@example.com' })
   @IsEmail()
   email: string;
 
-  @ApiProperty({ example: 'John Doe' })
+  @ApiProperty({ example: 'Password123!', minLength: 8 })
   @IsString()
-  name: string;
-
-  @ApiProperty({ example: 'password123', minLength: 6 })
-  @IsString()
-  @MinLength(6)
+  @MinLength(8)
   password: string;
+
+  @ApiProperty({ example: '+1234567890', required: false })
+  @IsString()
+  @IsOptional()
+  phoneNumber?: string;
 
   @ApiProperty({ example: '0x123...', required: false })
   @IsString()
   @IsOptional()
   walletAddress?: string;
 
-  @ApiProperty({ enum: ['user', 'admin'], default: 'user', required: false })
+  @ApiProperty({ example: 'Aadhaar123', required: false })
   @IsString()
   @IsOptional()
-  @IsEnum(['user', 'admin'])
-  role?: string = 'user';
+  governmentId?: string;
+
+  @ApiProperty({ example: '123 Main St, City, Country', required: false })
+  @IsString()
+  @IsOptional()
+  address?: string;
+
+  @ApiProperty({ enum: UserRole, default: UserRole.USER, required: false })
+  @IsEnum(UserRole)
+  @IsOptional()
+  role?: UserRole;
 }

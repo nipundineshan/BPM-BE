@@ -1,30 +1,74 @@
-import { IsString, IsNumber, IsOptional, IsUrl } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { IsNotEmpty, IsString, IsNumber, IsOptional, IsArray, IsUrl } from 'class-validator';
 
 export class CreatePlotDto {
-  @ApiProperty({ example: 'Sunset Valley Plot' })
+  @ApiProperty({ example: 'Sunshine Valley' })
   @IsString()
-  title: string;
+  @IsNotEmpty()
+  plotName: string;
 
-  @ApiProperty({ example: 'A beautiful residential plot near the valley.' })
+  @ApiProperty({ example: 'A beautiful residential plot with mountain views.' })
   @IsString()
+  @IsNotEmpty()
   description: string;
 
-  @ApiProperty({ example: 'California, USA' })
+  @ApiProperty({ example: 'SN-12345' })
   @IsString()
-  location: string;
+  @IsNotEmpty()
+  surveyNumber: string;
 
-  @ApiProperty({ example: 50000 })
+  @ApiProperty({ example: '1200 sq ft' })
+  @IsString()
+  @IsNotEmpty()
+  areaSize: string;
+
+  @ApiProperty({ example: 12.9716 })
   @IsNumber()
-  price: number;
-
-  @ApiProperty({ example: 'https://ipfs.io/ipfs/Qm...', required: false })
   @IsOptional()
-  @IsUrl()
-  imageUrl?: string;
+  latitude?: number;
 
-  @ApiProperty({ example: 'https://ipfs.io/ipfs/Qm...', required: false })
+  @ApiProperty({ example: 77.5946 })
+  @IsNumber()
   @IsOptional()
-  @IsUrl()
-  documentUrl?: string;
+  longitude?: number;
+
+  @ApiProperty({ example: '123 MG Road' })
+  @IsString()
+  @IsNotEmpty()
+  address: string;
+
+  @ApiProperty({ example: 'Bangalore' })
+  @IsString()
+  @IsNotEmpty()
+  district: string;
+
+  @ApiProperty({ example: 'Karnataka' })
+  @IsString()
+  @IsNotEmpty()
+  state: string;
+
+  @ApiProperty({ example: 'India' })
+  @IsString()
+  @IsNotEmpty()
+  country: string;
+
+  @ApiProperty({ example: 5000000 })
+  @IsNumber()
+  @IsNotEmpty()
+  marketValue: number;
+
+  @ApiProperty({ example: 'REG-98765' })
+  @IsString()
+  @IsNotEmpty()
+  registrationNumber: string;
+
+  @ApiProperty({ example: ['http://image1.com', 'http://image2.com'], required: false })
+  @IsArray()
+  @IsOptional()
+  propertyImages?: string[];
+
+  @ApiProperty({ example: ['http://doc1.com'], required: false })
+  @IsArray()
+  @IsOptional()
+  legalDocuments?: string[];
 }

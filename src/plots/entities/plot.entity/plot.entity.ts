@@ -1,5 +1,22 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn } from 'typeorm';
-import type { User } from '../../../users/entities/user.entity/user.entity';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  CreateDateColumn,
+  UpdateDateColumn,
+  OneToMany,
+} from 'typeorm';
+import { User } from '../../../users/entities/user.entity/user.entity';
+
+export enum PlotStatus {
+  DRAFT = 'draft',
+  SUBMITTED = 'submitted',
+  PENDING_APPROVAL = 'pending_approval',
+  APPROVED = 'approved',
+  REJECTED = 'rejected',
+  MINTED = 'minted',
+}
 
 @Entity('plots')
 export class Plot {
@@ -7,36 +24,64 @@ export class Plot {
   id: string;
 
   @Column()
-  title: string;
+  plotName: string;
 
   @Column('text')
   description: string;
 
   @Column()
-  location: string;
+  surveyNumber: string;
 
-  @Column('decimal')
-  price: number;
+  @Column()
+  areaSize: string;
+
+  @Column({ type: 'decimal', precision: 10, scale: 8, nullable: true })
+  latitude: number;
+
+  @Column({ type: 'decimal', precision: 11, scale: 8, nullable: true })
+  longitude: number;
+
+  @Column()
+  address: string;
+
+  @Column()
+  district: string;
+
+  @Column()
+  state: string;
+
+  @Column()
+  country: string;
+
+  @Column({ type: 'decimal', precision: 20, scale: 2 })
+  marketValue: number;
+
+  @Column()
+  registrationNumber: string;
+
+  @Column('simple-array', { nullable: true })
+  propertyImages: string[];
+
+  @Column('simple-array', { nullable: true })
+  legalDocuments: string[];
+
+  @Column({
+    type: 'enum',
+    enum: PlotStatus,
+    default: PlotStatus.DRAFT,
+  })
+  status: PlotStatus;
 
   @Column({ nullable: true })
-  imageUrl: string;
+  tokenId: string;
 
   @Column({ nullable: true })
-  documentUrl: string;
+  transactionHash: string;
 
   @Column({ nullable: true })
-  ipfsHash: string;
+  ipfsCid: string;
 
-  @Column({ nullable: true })
-  tokenId: number;
-
-  @Column({ default: false })
-  isMinted: boolean;
-
-  @Column({ default: 'pending' })
-  verificationStatus: string; // 'pending', 'verified', 'rejected'
-
-  @ManyToOne('User', 'plots')
+  @ManyToOne(() => User, (user) => user.plots)
   owner: User;
 
   @CreateDateColumn()
