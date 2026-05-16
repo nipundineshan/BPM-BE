@@ -61,7 +61,7 @@ export class UsersService {
     user.status = status;
     if (status === UserStatus.APPROVED) {
       user.approvedAt = new Date();
-      user.approvedBy = approvedBy;
+      user.approvedBy = approvedBy || null;
     }
     return this.userRepository.save(user);
   }

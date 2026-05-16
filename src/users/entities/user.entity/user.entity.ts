@@ -28,20 +28,20 @@ export class User {
   @Column({ select: false })
   password: string;
 
-  @Column({ nullable: true })
-  phoneNumber: string;
+  @Column({ type: 'varchar', nullable: true })
+  phoneNumber: string | null;
 
-  @Column({ unique: true, nullable: true })
-  walletAddress: string;
+  @Column({ type: 'varchar', unique: true, nullable: true })
+  walletAddress: string | null;
 
-  @Column({ nullable: true })
-  governmentId: string; // Aadhaar / Passport / ID
+  @Column({ type: 'varchar', nullable: true })
+  governmentId: string | null; // Aadhaar / Passport / ID
 
   @Column({ type: 'text', nullable: true })
-  address: string;
+  address: string | null;
 
-  @Column({ nullable: true })
-  profileImage: string;
+  @Column({ type: 'varchar', nullable: true })
+  profileImage: string | null;
 
   @Column({
     type: 'enum',
@@ -60,14 +60,14 @@ export class User {
   @Column({ default: true })
   isActive: boolean;
 
-  @Column({ nullable: true })
-  approvedBy: string;
+  @Column({ type: 'varchar', nullable: true })
+  approvedBy: string | null;
 
-  @Column({ nullable: true })
-  approvedAt: Date;
+  @Column({ type: 'timestamp', nullable: true })
+  approvedAt: Date | null;
 
-  @Column({ nullable: true })
-  lastLogin: Date;
+  @Column({ type: 'timestamp', nullable: true })
+  lastLogin: Date | null;
 
   @Column({ default: 0 })
   loginCount: number;
