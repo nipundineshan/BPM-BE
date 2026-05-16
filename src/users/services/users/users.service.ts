@@ -14,6 +14,10 @@ export class UsersService {
     if (!userData.email) {
       throw new BadRequestException('Email is required');
     }
+    if (!userData.fullName) {
+      throw new BadRequestException('Full name is required');
+    }
+    
     const existingUser = await this.findByEmail(userData.email);
     if (existingUser) {
       throw new BadRequestException('User with this email already exists');

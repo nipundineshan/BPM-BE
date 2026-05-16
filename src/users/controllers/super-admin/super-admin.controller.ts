@@ -4,6 +4,7 @@ import { JwtAuthGuard } from '../../../auth/jwt-auth.guard';
 import { RolesGuard } from '../../../auth/roles.guard';
 import { Roles } from '../../../auth/roles.decorator';
 import { UserRole, UserStatus } from '../../entities/user.entity/user.entity';
+import { RegisterDto } from '../../../auth/dto/register.dto/register.dto';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import * as bcrypt from 'bcrypt';
 
@@ -17,7 +18,7 @@ export class SuperAdminController {
 
   @Post('admins')
   @ApiOperation({ summary: 'Create a new ADMIN account' })
-  async createAdmin(@Body() adminData: any) {
+  async createAdmin(@Body() adminData: RegisterDto) {
     const hashedPassword = await bcrypt.hash(adminData.password, 10);
     return this.usersService.create({
       ...adminData,
