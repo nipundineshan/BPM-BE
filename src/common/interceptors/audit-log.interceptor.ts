@@ -25,12 +25,22 @@ export class AuditLogInterceptor implements NestInterceptor {
     return next.handle().pipe(
       tap((data) => {
         if (method !== 'GET' && user) {
+          const pathParts = url.split('/');
+          const moduleName = pathParts.includes('v1') 
+            ? pathParts[pathParts.indexOf('v1') + 1] 
+            : pathParts[1] || 'unknown';
+
           this.auditLogRepository.save({
             action: `${method} ${url}`,
-            module: url.split('/')[2] || 'unknown',
-            user: user,
+            module: moduleName,
+            user: { id: user.id },
             ipAddress: ip,
-            details: { response: data },
+            details: { 
+              statusCode: context.switchToHttp().getResponse().statusCode,
+            },
+          }).catch(err => {
+             // Silently catch audit log errors to not disrupt main request
+             console.error('Failed to save audit log:', err);
           });
         }
       }),

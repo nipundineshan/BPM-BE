@@ -55,6 +55,9 @@ export class UsersService {
   }
 
   async updateProfile(id: string, updateData: Partial<User>): Promise<User> {
+    if (!updateData || Object.keys(updateData).length === 0) {
+      return this.findOne(id);
+    }
     const user = await this.findOne(id);
     Object.assign(user, updateData);
     return this.userRepository.save(user);
@@ -77,15 +80,42 @@ export class UsersService {
   }
 
   async updateLoginStats(id: string): Promise<void> {
+    await this.userRepository.increment({ id }, 'loginCount', 1);
     await this.userRepository.update(id, {
       lastLogin: new Date(),
-      loginCount: () => 'loginCount + 1',
     });
   }
 
   async getPendingUsers(): Promise<User[]> {
     return this.userRepository.find({
       where: { status: UserStatus.PENDING_APPROVAL, role: UserRole.USER }
+    });
+  }
+
+  async getRoleCounts(): Promise<Record<string, number>> {
+    const counts = await this.userRepository
+      .createQueryBuilder('user')
+      .select('user.role', 'role')
+      .addSelect('COUNT(*)', 'count')
+      .groupBy('user.role')
+      .getRawMany();
+
+    const result = {
+      [UserRole.USER]: 0,
+      [UserRole.ADMIN]: 0,
+      [UserRole.SUPER_ADMIN]: 0,
+    };
+
+    counts.forEach((c) => {
+      result[c.role] = parseInt(c.count);
+    });
+
+    return result;
+  }
+
+  async findAdmins(): Promise<User[]> {
+    return this.userRepository.find({
+      where: { role: UserRole.ADMIN },
     });
   }
 }

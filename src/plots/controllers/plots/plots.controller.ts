@@ -9,6 +9,7 @@ import {
   UseGuards,
   Request,
   Patch,
+  UseInterceptors,
 } from '@nestjs/common';
 import { PlotsService } from '../../services/plots/plots.service';
 import { JwtAuthGuard } from '../../../auth/jwt-auth.guard';
@@ -18,9 +19,11 @@ import { CreatePlotDto } from '../../dto/create-plot.dto/create-plot.dto';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
 import { PlotStatus } from '../../entities/plot.entity/plot.entity';
 import { UserRole } from '../../../users/entities/user.entity/user.entity';
+import { AuditLogInterceptor } from '../../../common/interceptors/audit-log.interceptor';
 
 @ApiTags('Plots')
 @Controller('plots')
+@UseInterceptors(AuditLogInterceptor)
 export class PlotsController {
   constructor(private plotsService: PlotsService) {}
 
@@ -44,6 +47,24 @@ export class PlotsController {
   @ApiOperation({ summary: 'List own plots' })
   async findMyPlots(@Request() req) {
     return this.plotsService.findByUser(req.user.id);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
+  @Get('stats')
+  @ApiOperation({ summary: 'Get platform statistics' })
+  async getStats() {
+    return this.plotsService.getGlobalStats();
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.SUPER_ADMIN)
+  @Get('global-stats')
+  @ApiOperation({ summary: 'Get global platform statistics (Super Admin only)' })
+  async getGlobalStats() {
+    return this.plotsService.getGlobalStats();
   }
 
   @Get(':id')

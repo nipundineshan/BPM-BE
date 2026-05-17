@@ -4,9 +4,16 @@ import { Plot } from './entities/plot.entity/plot.entity';
 import { PlotsService } from './services/plots/plots.service';
 import { PlotsController, AdminPlotsController } from './controllers/plots/plots.controller';
 import { IpfsModule } from '../ipfs/ipfs.module';
+import { UsersModule } from '../users/users.module';
+import { AuditLogsModule } from '../audit-logs/audit-logs.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Plot]), IpfsModule],
+  imports: [
+    TypeOrmModule.forFeature([Plot]),
+    IpfsModule,
+    UsersModule,
+    AuditLogsModule,
+  ],
   providers: [PlotsService],
   controllers: [PlotsController, AdminPlotsController],
   exports: [PlotsService],

@@ -6,9 +6,10 @@ import { UsersController, AdminUsersController } from './controllers/users/users
 import { SuperAdminController } from './controllers/super-admin/super-admin.controller';
 import { AdminController } from './controllers/admin/admin.controller';
 import { SeedService } from './services/users/seed.service';
+import { AuditLogsModule } from '../audit-logs/audit-logs.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User])],
+  imports: [TypeOrmModule.forFeature([User]), AuditLogsModule],
   providers: [UsersService, SeedService],
   controllers: [
     UsersController, 

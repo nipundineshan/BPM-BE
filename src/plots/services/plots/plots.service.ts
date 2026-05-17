@@ -1,10 +1,11 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Plot, PlotStatus } from '../../entities/plot.entity/plot.entity';
 import { IpfsService } from '../../../ipfs/ipfs.service';
 import { User } from '../../../users/entities/user.entity/user.entity';
 import { CreatePlotDto } from '../../dto/create-plot.dto/create-plot.dto';
+import { UsersService } from '../../../users/services/users/users.service';
 
 @Injectable()
 export class PlotsService {
@@ -12,6 +13,7 @@ export class PlotsService {
     @InjectRepository(Plot)
     private plotRepository: Repository<Plot>,
     private ipfsService: IpfsService,
+    private usersService: UsersService,
   ) {}
 
   async create(createPlotDto: CreatePlotDto, user: User): Promise<Plot> {
@@ -49,12 +51,16 @@ export class PlotsService {
 
   async update(id: string, updateData: Partial<Plot>, userId: string): Promise<Plot> {
     const plot = await this.findOne(id);
+    if (!updateData || Object.keys(updateData).length === 0) {
+      return plot;
+    }
     if (plot.owner.id !== userId && plot.status !== PlotStatus.DRAFT) {
       throw new BadRequestException('Cannot update plot after submission');
     }
     Object.assign(plot, updateData);
     return await this.plotRepository.save(plot);
   }
+
 
   async submitForApproval(id: string, userId: string): Promise<Plot> {
     const plot = await this.findOne(id);
@@ -124,5 +130,39 @@ export class PlotsService {
     plot.tokenId = tokenId;
     plot.transactionHash = transactionHash;
     return await this.plotRepository.save(plot);
+  }
+
+  async getGlobalStats() {
+    const totalPlots = await this.plotRepository.count();
+    const approvedPlots = await this.plotRepository.count({ where: { status: PlotStatus.APPROVED } });
+    const mintedPlots = await this.plotRepository.count({ where: { status: PlotStatus.MINTED } });
+    
+    const totalValueResult = await this.plotRepository
+      .createQueryBuilder('plot')
+      .select('SUM(plot.marketValue)', 'total')
+      .where('plot.status IN (:...statuses)', { statuses: [PlotStatus.APPROVED, PlotStatus.MINTED] })
+      .getRawOne();
+    
+    const monthlyActivity = await this.plotRepository
+      .createQueryBuilder('plot')
+      .select("TO_CHAR(plot.createdAt, 'YYYY-MM')", 'month')
+      .addSelect('COUNT(*)', 'count')
+      .groupBy('month')
+      .orderBy('month', 'ASC')
+      .limit(6)
+      .getRawMany();
+
+    const roleCounts = await this.usersService.getRoleCounts();
+
+    return {
+      stats: {
+        totalPlots,
+        approvedPlots,
+        mintedPlots,
+        totalMarketValue: parseFloat(totalValueResult.total || '0'),
+      },
+      monthlyActivity,
+      roleCounts,
+    };
   }
 }
