@@ -1,13 +1,23 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString, IsNumber, IsOptional } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsString,
+  IsNumber,
+  IsOptional
+} from 'class-validator';
+
+import { Type } from 'class-transformer';
 
 export class CreatePlotDto {
+
   @ApiProperty({ example: 'Sunshine Valley' })
   @IsString()
   @IsNotEmpty()
   plotName: string;
 
-  @ApiProperty({ example: 'A beautiful residential plot with mountain views.' })
+  @ApiProperty({
+    example: 'A beautiful residential plot with mountain views.'
+  })
   @IsString()
   @IsNotEmpty()
   description: string;
@@ -23,11 +33,13 @@ export class CreatePlotDto {
   areaSize: string;
 
   @ApiProperty({ example: 12.9716 })
+  @Type(() => Number)
   @IsNumber()
   @IsOptional()
   latitude?: number;
 
   @ApiProperty({ example: 77.5946 })
+  @Type(() => Number)
   @IsNumber()
   @IsOptional()
   longitude?: number;
@@ -53,6 +65,7 @@ export class CreatePlotDto {
   country: string;
 
   @ApiProperty({ example: 5000000 })
+  @Type(() => Number)
   @IsNumber()
   @IsNotEmpty()
   marketValue: number;
@@ -62,9 +75,25 @@ export class CreatePlotDto {
   @IsNotEmpty()
   registrationNumber: string;
 
-  @ApiProperty({ type: 'array', items: { type: 'string', format: 'binary' }, required: false })
+  // REMOVE THESE FROM DTO VALIDATION
+  // Swagger only
+  @ApiProperty({
+    type: 'array',
+    items: {
+      type: 'string',
+      format: 'binary'
+    },
+    required: false
+  })
   propertyImages?: any[];
 
-  @ApiProperty({ type: 'array', items: { type: 'string', format: 'binary' }, required: false })
+  @ApiProperty({
+    type: 'array',
+    items: {
+      type: 'string',
+      format: 'binary'
+    },
+    required: false
+  })
   legalDocuments?: any[];
 }

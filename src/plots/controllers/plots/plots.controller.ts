@@ -54,6 +54,10 @@ export class PlotsController {
       legalDocuments?: Express.Multer.File[];
     },
   ) {
+    console.log('createPlotDto');
+    console.log(createPlotDto);
+    console.log(files);
+
     return this.plotsService.create(createPlotDto, req.user, files);
   }
 
