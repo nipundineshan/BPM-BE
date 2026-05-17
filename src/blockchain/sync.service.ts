@@ -24,26 +24,38 @@ export class SyncService implements OnModuleInit {
 
     this.logger.log('Starting blockchain event listener...');
 
-    contract.on('Transfer', async (from: string, to: string, tokenId: bigint) => {
-      this.logger.log(`Event Transfer: TokenID ${tokenId} from ${from} to ${to}`);
-      
-      if (from === '0x0000000000000000000000000000000000000000') {
-        // This is a Mint event
-        try {
-          const tokenURI = await contract.getFunction('tokenURI')(tokenId);
-          const ipfsCid = tokenURI.replace('ipfs://', '');
-          const plot = await this.plotRepository.findOne({ where: { ipfsCid } });
-          
-          if (plot) {
-            plot.tokenId = tokenId.toString();
-            plot.status = PlotStatus.MINTED;
-            await this.plotRepository.save(plot);
-            this.logger.log(`Updated plot ${plot.id} with TokenID ${tokenId}`);
+    contract.on(
+      'Transfer',
+      async (from: string, to: string, tokenId: bigint) => {
+        this.logger.log(
+          `Event Transfer: TokenID ${tokenId} from ${from} to ${to}`,
+        );
+
+        if (from === '0x0000000000000000000000000000000000000000') {
+          // This is a Mint event
+          try {
+            const tokenURI = await contract.getFunction('tokenURI')(tokenId);
+            const ipfsCid = tokenURI.replace('ipfs://', '');
+            const plot = await this.plotRepository.findOne({
+              where: { ipfsCid },
+            });
+
+            if (plot) {
+              plot.tokenId = tokenId.toString();
+              plot.status = PlotStatus.MINTED;
+              await this.plotRepository.save(plot);
+              this.logger.log(
+                `Updated plot ${plot.id} with TokenID ${tokenId}`,
+              );
+            }
+          } catch (error) {
+            this.logger.error(
+              `Error processing mint event for TokenID ${tokenId}`,
+              error,
+            );
           }
-        } catch (error) {
-          this.logger.error(`Error processing mint event for TokenID ${tokenId}`, error);
         }
-      }
-    });
+      },
+    );
   }
 }

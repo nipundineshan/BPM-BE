@@ -19,9 +19,14 @@ export class SeedService implements OnModuleInit {
 
   async seed() {
     // Super Admin Seeding
-    const superAdminEmail = this.configService.get<string>('SUPER_ADMIN_EMAIL') || 'superadmin@bpm.com';
-    const superAdminName = this.configService.get<string>('SUPER_ADMIN_NAME') || 'Super Admin';
-    const superAdminPassword = this.configService.get<string>('SUPER_ADMIN_PASSWORD') || 'SuperAdmin@123';
+    const superAdminEmail =
+      this.configService.get<string>('SUPER_ADMIN_EMAIL') ||
+      'superadmin@bpm.com';
+    const superAdminName =
+      this.configService.get<string>('SUPER_ADMIN_NAME') || 'Super Admin';
+    const superAdminPassword =
+      this.configService.get<string>('SUPER_ADMIN_PASSWORD') ||
+      'SuperAdmin@123';
     const superAdminPhone = this.configService.get<string>('SUPER_ADMIN_PHONE');
 
     const superAdmin = await this.usersService.findByEmail(superAdminEmail);

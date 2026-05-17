@@ -1,4 +1,9 @@
-import { Injectable, BadRequestException, Logger, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { BlockchainService } from '../../../blockchain/blockchain.service';
 import { PlotsService } from '../../../plots/services/plots/plots.service';
 import { PlotStatus } from '../../../plots/entities/plot.entity/plot.entity';
@@ -14,7 +19,7 @@ export class NftService {
 
   async mintPropertyNft(plotId: string) {
     const plot = await this.plotsService.findOne(plotId);
-    
+
     if (plot.status === PlotStatus.MINTED) {
       throw new BadRequestException('Property already minted as NFT');
     }
@@ -34,12 +39,14 @@ export class NftService {
         ipfsCid = await this.plotsService.uploadMetadataToIpfs(plotId);
       }
 
-      this.logger.log(`Minting NFT for plot ${plotId} to ${plot.owner.walletAddress}`);
-      
+      this.logger.log(
+        `Minting NFT for plot ${plotId} to ${plot.owner.walletAddress}`,
+      );
+
       // 2. Call smart contract
       const receipt = await this.blockchainService.mintProperty(
         plot.owner.walletAddress,
-        `ipfs://${ipfsCid}`
+        `ipfs://${ipfsCid}`,
       );
 
       if (!receipt) {
@@ -51,13 +58,17 @@ export class NftService {
       const tokenId = await this.blockchainService.getTokenCounter();
 
       // 4. Update plot status
-      await this.plotsService.markAsMinted(plotId, (tokenId - 1n).toString(), receipt.hash);
+      await this.plotsService.markAsMinted(
+        plotId,
+        (tokenId - 1n).toString(),
+        receipt.hash,
+      );
 
       return {
         message: 'Minting transaction successful',
         transactionHash: receipt.hash,
         tokenId: (tokenId - 1n).toString(),
-        blockNumber: receipt.blockNumber
+        blockNumber: receipt.blockNumber,
       };
     } catch (error) {
       this.logger.error('Error minting property NFT', error);

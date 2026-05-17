@@ -1,10 +1,18 @@
-import { Injectable, UnauthorizedException, BadRequestException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  BadRequestException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { RegisterDto } from '../../dto/register.dto/register.dto';
 import { LoginDto } from '../../dto/login.dto/login.dto';
 import { UsersService } from '../../../users/services/users/users.service';
-import { UserStatus, UserRole } from '../../../users/entities/user.entity/user.entity';
+import {
+  UserStatus,
+  UserRole,
+} from '../../../users/entities/user.entity/user.entity';
 
 @Injectable()
 export class AuthService {
@@ -21,7 +29,7 @@ export class AuthService {
       role: UserRole.USER, // Force USER role for public signup
       status: UserStatus.PENDING_APPROVAL,
     });
-    
+
     return {
       message: 'Your account is pending admin approval.',
       user: {
@@ -30,7 +38,7 @@ export class AuthService {
         fullName: user.fullName,
         role: user.role,
         status: user.status,
-      }
+      },
     };
   }
 
@@ -60,9 +68,9 @@ export class AuthService {
     try {
       const payload = this.jwtService.verify(refreshToken);
       const user = await this.usersService.findOne(payload.sub);
-      
+
       if (user.status !== UserStatus.APPROVED || !user.isActive) {
-         throw new ForbiddenException('Account is not active or approved');
+        throw new ForbiddenException('Account is not active or approved');
       }
 
       return this.generateTokens(user);
@@ -91,7 +99,10 @@ export class AuthService {
   async forgotPassword(email: string) {
     const user = await this.usersService.findByEmail(email);
     if (!user) {
-      return { message: 'If an account exists with this email, a reset link has been sent.' };
+      return {
+        message:
+          'If an account exists with this email, a reset link has been sent.',
+      };
     }
     return { message: 'Reset link sent.' };
   }

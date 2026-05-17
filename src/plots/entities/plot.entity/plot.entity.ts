@@ -12,8 +12,6 @@ import { PropertyImage } from '../property-image.entity';
 import { LegalDocument } from '../legal-document.entity';
 
 export enum PlotStatus {
-  DRAFT = 'draft',
-  SUBMITTED = 'submitted',
   PENDING_APPROVAL = 'pending_approval',
   APPROVED = 'approved',
   REJECTED = 'rejected',
@@ -37,10 +35,10 @@ export class Plot {
   @Column()
   areaSize: string;
 
-  @Column({ type: 'decimal', precision: 10, scale: 8, nullable: true })
+  @Column({ type: 'decimal', precision: 18, scale: 10, nullable: true })
   latitude: number;
 
-  @Column({ type: 'decimal', precision: 11, scale: 8, nullable: true })
+  @Column({ type: 'decimal', precision: 18, scale: 10, nullable: true })
   longitude: number;
 
   @Column()
@@ -55,7 +53,7 @@ export class Plot {
   @Column()
   country: string;
 
-  @Column({ type: 'decimal', precision: 20, scale: 2 })
+  @Column({ type: 'decimal', precision: 30, scale: 2 })
   marketValue: number;
 
   @Column()
@@ -70,7 +68,7 @@ export class Plot {
   @Column({
     type: 'enum',
     enum: PlotStatus,
-    default: PlotStatus.DRAFT,
+    default: PlotStatus.PENDING_APPROVAL,
   })
   status: PlotStatus;
 

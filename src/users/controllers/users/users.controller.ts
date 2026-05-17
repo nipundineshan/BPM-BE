@@ -113,7 +113,10 @@ export class AdminUsersController {
 
   @Patch(':id/status')
   @ApiOperation({ summary: 'Update user status' })
-  async updateStatus(@Param('id') id: string, @Body('status') status: UserStatus) {
+  async updateStatus(
+    @Param('id') id: string,
+    @Body('status') status: UserStatus,
+  ) {
     return this.usersService.setStatus(id, status);
   }
 }

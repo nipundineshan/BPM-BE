@@ -26,7 +26,13 @@ export class AuditLogsService {
     });
   }
 
-  async log(action: string, module: string, user: any, details?: any, ipAddress?: string): Promise<AuditLog> {
+  async log(
+    action: string,
+    module: string,
+    user: any,
+    details?: any,
+    ipAddress?: string,
+  ): Promise<AuditLog> {
     const log = this.auditLogRepository.create({
       action,
       module,

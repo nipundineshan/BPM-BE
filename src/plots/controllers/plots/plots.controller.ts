@@ -88,7 +88,9 @@ export class PlotsController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.SUPER_ADMIN)
   @Get('global-stats')
-  @ApiOperation({ summary: 'Get global platform statistics (Super Admin only)' })
+  @ApiOperation({
+    summary: 'Get global platform statistics (Super Admin only)',
+  })
   async getGlobalStats() {
     return this.plotsService.getGlobalStats();
   }
@@ -167,7 +169,7 @@ export class AdminPlotsController {
   @Get('pending')
   @ApiOperation({ summary: 'List plots pending approval' })
   async findPending() {
-    return this.plotsService.findByStatus(PlotStatus.SUBMITTED);
+    return this.plotsService.findByStatus(PlotStatus.PENDING_APPROVAL);
   }
 
   @Post(':id/approve')

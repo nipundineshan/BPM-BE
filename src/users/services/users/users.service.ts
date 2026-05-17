@@ -1,7 +1,15 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User, UserStatus, UserRole } from '../../entities/user.entity/user.entity';
+import {
+  User,
+  UserStatus,
+  UserRole,
+} from '../../entities/user.entity/user.entity';
 
 @Injectable()
 export class UsersService {
@@ -17,7 +25,7 @@ export class UsersService {
     if (!userData.fullName) {
       throw new BadRequestException('Full name is required');
     }
-    
+
     const existingUser = await this.findByEmail(userData.email);
     if (existingUser) {
       throw new BadRequestException('User with this email already exists');
@@ -35,9 +43,9 @@ export class UsersService {
   }
 
   async findOne(id: string): Promise<User> {
-    const user = await this.userRepository.findOne({ 
+    const user = await this.userRepository.findOne({
       where: { id },
-      relations: ['plots']
+      relations: ['plots'],
     });
     if (!user) throw new NotFoundException('User not found');
     return user;
@@ -48,7 +56,8 @@ export class UsersService {
   }
 
   async findByEmailWithPassword(email: string): Promise<User | null> {
-    return this.userRepository.createQueryBuilder('user')
+    return this.userRepository
+      .createQueryBuilder('user')
       .addSelect('user.password')
       .where('user.email = :email', { email })
       .getOne();
@@ -63,7 +72,11 @@ export class UsersService {
     return this.userRepository.save(user);
   }
 
-  async setStatus(id: string, status: UserStatus, approvedBy?: string): Promise<User> {
+  async setStatus(
+    id: string,
+    status: UserStatus,
+    approvedBy?: string,
+  ): Promise<User> {
     const user = await this.findOne(id);
     user.status = status;
     if (status === UserStatus.APPROVED) {
@@ -88,7 +101,7 @@ export class UsersService {
 
   async getPendingUsers(): Promise<User[]> {
     return this.userRepository.find({
-      where: { status: UserStatus.PENDING_APPROVAL, role: UserRole.USER }
+      where: { status: UserStatus.PENDING_APPROVAL, role: UserRole.USER },
     });
   }
 

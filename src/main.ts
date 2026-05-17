@@ -14,9 +14,11 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   // Security
-  app.use(helmet({
-    crossOriginResourcePolicy: false,
-  }));
+  app.use(
+    helmet({
+      crossOriginResourcePolicy: false,
+    }),
+  );
   app.enableCors();
 
   // Static files
@@ -39,7 +41,9 @@ async function bootstrap() {
   // Swagger Configuration
   const config = new DocumentBuilder()
     .setTitle('BPM Real Estate NFT Platform')
-    .setDescription('The API documentation for the Blockchain Property Management platform')
+    .setDescription(
+      'The API documentation for the Blockchain Property Management platform',
+    )
     .setVersion('1.0')
     .addBearerAuth()
     .build();
@@ -58,6 +62,8 @@ async function bootstrap() {
   const port = process.env.PORT ?? 3000;
   await app.listen(port);
   logger.log(`Application is running on: http://localhost:${port}/api/v1`);
-  logger.log(`Swagger documentation available at: http://localhost:${port}/docs`);
+  logger.log(
+    `Swagger documentation available at: http://localhost:${port}/docs`,
+  );
 }
 bootstrap();

@@ -26,10 +26,12 @@ import { Transaction } from './transactions/entities/transaction.entity';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
-    ThrottlerModule.forRoot([{
-      ttl: 60000,
-      limit: 10,
-    }]),
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000,
+        limit: 10,
+      },
+    ]),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -40,10 +42,19 @@ import { Transaction } from './transactions/entities/transaction.entity';
         username: configService.get<string>('DB_USERNAME'),
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_DATABASE'),
-        entities: [User, Plot, PropertyImage, LegalDocument, Notification, AuditLog, Transaction],
+        entities: [
+          User,
+          Plot,
+          PropertyImage,
+          LegalDocument,
+          Notification,
+          AuditLog,
+          Transaction,
+        ],
         synchronize: true, // Set to false in production
       }),
     }),
+    TypeOrmModule.forFeature([Plot]),
     AuthModule,
     PlotsModule,
     NftModule,

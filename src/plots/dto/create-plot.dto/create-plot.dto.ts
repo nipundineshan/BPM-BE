@@ -3,20 +3,20 @@ import {
   IsNotEmpty,
   IsString,
   IsNumber,
-  IsOptional
+  IsOptional,
+  IsArray,
 } from 'class-validator';
 
 import { Type } from 'class-transformer';
 
 export class CreatePlotDto {
-
   @ApiProperty({ example: 'Sunshine Valley' })
   @IsString()
   @IsNotEmpty()
   plotName: string;
 
   @ApiProperty({
-    example: 'A beautiful residential plot with mountain views.'
+    example: 'A beautiful residential plot with mountain views.',
   })
   @IsString()
   @IsNotEmpty()
@@ -75,25 +75,27 @@ export class CreatePlotDto {
   @IsNotEmpty()
   registrationNumber: string;
 
-  // REMOVE THESE FROM DTO VALIDATION
-  // Swagger only
   @ApiProperty({
     type: 'array',
     items: {
       type: 'string',
-      format: 'binary'
+      format: 'binary',
     },
-    required: false
+    required: false,
   })
+  @IsOptional()
+  @IsArray()
   propertyImages?: any[];
 
   @ApiProperty({
     type: 'array',
     items: {
       type: 'string',
-      format: 'binary'
+      format: 'binary',
     },
-    required: false
+    required: false,
   })
+  @IsOptional()
+  @IsArray()
   legalDocuments?: any[];
 }

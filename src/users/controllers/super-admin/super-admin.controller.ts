@@ -1,4 +1,12 @@
-import { Controller, Post, Get, Patch, Body, Param, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Get,
+  Patch,
+  Body,
+  Param,
+  UseGuards,
+} from '@nestjs/common';
 import { UsersService } from '../../services/users/users.service';
 import { JwtAuthGuard } from '../../../auth/jwt-auth.guard';
 import { RolesGuard } from '../../../auth/roles.guard';
@@ -36,7 +44,10 @@ export class SuperAdminController {
 
   @Patch('admins/:id/status')
   @ApiOperation({ summary: 'Activate/Deactivate ADMIN account' })
-  async updateAdminStatus(@Param('id') id: string, @Body('isActive') isActive: boolean) {
+  async updateAdminStatus(
+    @Param('id') id: string,
+    @Body('isActive') isActive: boolean,
+  ) {
     return this.usersService.toggleActive(id, isActive);
   }
 }

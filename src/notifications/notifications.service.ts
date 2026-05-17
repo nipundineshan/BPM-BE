@@ -11,7 +11,12 @@ export class NotificationsService {
     private notificationRepository: Repository<Notification>,
   ) {}
 
-  async create(user: User, title: string, message: string, type: NotificationType = NotificationType.INFO) {
+  async create(
+    user: User,
+    title: string,
+    message: string,
+    type: NotificationType = NotificationType.INFO,
+  ) {
     const notification = this.notificationRepository.create({
       user,
       title,

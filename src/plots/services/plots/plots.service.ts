@@ -30,7 +30,12 @@ export class PlotsService {
     propertyImages?: Express.Multer.File[];
     legalDocuments?: Express.Multer.File[];
   }) {
-    const allowedImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    const allowedImageTypes = [
+      'image/jpeg',
+      'image/jpg',
+      'image/png',
+      'image/webp',
+    ];
     const allowedDocTypes = [
       'application/pdf',
       'application/msword',
@@ -44,7 +49,9 @@ export class PlotsService {
           throw new BadRequestException(`Invalid image type: ${file.mimetype}`);
         }
         if (file.size > maxSize) {
-          throw new BadRequestException(`Image too large: ${file.originalname}`);
+          throw new BadRequestException(
+            `Image too large: ${file.originalname}`,
+          );
         }
       }
     }
@@ -52,10 +59,14 @@ export class PlotsService {
     if (files.legalDocuments) {
       for (const file of files.legalDocuments) {
         if (!allowedDocTypes.includes(file.mimetype)) {
-          throw new BadRequestException(`Invalid document type: ${file.mimetype}`);
+          throw new BadRequestException(
+            `Invalid document type: ${file.mimetype}`,
+          );
         }
         if (file.size > maxSize) {
-          throw new BadRequestException(`Document too large: ${file.originalname}`);
+          throw new BadRequestException(
+            `Document too large: ${file.originalname}`,
+          );
         }
       }
     }
@@ -74,7 +85,7 @@ export class PlotsService {
     const plot = this.plotRepository.create({
       ...createPlotDto,
       owner: user,
-      status: PlotStatus.DRAFT,
+      status: PlotStatus.PENDING_APPROVAL,
     });
 
     const savedPlot = await this.plotRepository.save(plot);
@@ -147,8 +158,12 @@ export class PlotsService {
     },
   ): Promise<Plot> {
     const plot = await this.findOne(id);
-    if (plot.owner.id !== userId && plot.status !== PlotStatus.DRAFT) {
-      throw new BadRequestException('Cannot update plot after submission');
+    if (
+      plot.owner.id !== userId &&
+      plot.status !== PlotStatus.PENDING_APPROVAL &&
+      plot.status !== PlotStatus.REJECTED
+    ) {
+      throw new BadRequestException('Cannot update plot after approval');
     }
 
     if (files) {
@@ -182,7 +197,7 @@ export class PlotsService {
     if (updateData && Object.keys(updateData).length > 0) {
       Object.assign(plot, updateData);
     }
-    
+
     await this.plotRepository.save(plot);
     return this.findOne(id);
   }
@@ -192,19 +207,16 @@ export class PlotsService {
     if (plot.owner.id !== userId) {
       throw new BadRequestException('Unauthorized');
     }
-    if (
-      plot.status !== PlotStatus.DRAFT &&
-      plot.status !== PlotStatus.REJECTED
-    ) {
+    if (plot.status !== PlotStatus.REJECTED) {
       throw new BadRequestException('Plot already submitted or processed');
     }
-    plot.status = PlotStatus.SUBMITTED;
+    plot.status = PlotStatus.PENDING_APPROVAL;
     return await this.plotRepository.save(plot);
   }
 
   async approve(id: string): Promise<Plot> {
     const plot = await this.findOne(id);
-    if (plot.status !== PlotStatus.SUBMITTED) {
+    if (plot.status !== PlotStatus.PENDING_APPROVAL) {
       throw new BadRequestException('Plot not in submitted state');
     }
     plot.status = PlotStatus.APPROVED;
@@ -213,7 +225,7 @@ export class PlotsService {
 
   async reject(id: string): Promise<Plot> {
     const plot = await this.findOne(id);
-    if (plot.status !== PlotStatus.SUBMITTED) {
+    if (plot.status !== PlotStatus.PENDING_APPROVAL) {
       throw new BadRequestException('Plot not in submitted state');
     }
     plot.status = PlotStatus.REJECTED;
@@ -226,15 +238,16 @@ export class PlotsService {
     if (plot.status !== PlotStatus.APPROVED) {
       throw new BadRequestException('Plot must be approved before IPFS upload');
     }
-    
+
     const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
 
     const metadata = {
       name: plot.plotName,
       description: plot.description,
-      image: plot.propertyImages?.length > 0 
-        ? `${baseUrl}/plots/image/${plot.propertyImages[0].id}`
-        : '',
+      image:
+        plot.propertyImages?.length > 0
+          ? `${baseUrl}/plots/image/${plot.propertyImages[0].id}`
+          : '',
       attributes: [
         { trait_type: 'Survey Number', value: plot.surveyNumber },
         { trait_type: 'Area Size', value: plot.areaSize },
@@ -245,8 +258,11 @@ export class PlotsService {
       properties: {
         owner: plot.owner.fullName,
         ownerWallet: plot.owner.walletAddress,
-        documents: plot.legalDocuments?.map(doc => `${baseUrl}/plots/document/${doc.id}`) || []
-      }
+        documents:
+          plot.legalDocuments?.map(
+            (doc) => `${baseUrl}/plots/document/${doc.id}`,
+          ) || [],
+      },
     };
 
     const ipfsCid = await this.ipfsService.uploadJson(metadata);
