@@ -5,21 +5,28 @@ import {
   Body,
   Param,
   Put,
-  Delete,
   UseGuards,
   Request,
-  Patch,
   UseInterceptors,
+  UploadedFiles,
+  Res,
 } from '@nestjs/common';
 import { PlotsService } from '../../services/plots/plots.service';
 import { JwtAuthGuard } from '../../../auth/jwt-auth.guard';
 import { RolesGuard } from '../../../auth/roles.guard';
 import { Roles } from '../../../auth/roles.decorator';
 import { CreatePlotDto } from '../../dto/create-plot.dto/create-plot.dto';
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiBearerAuth,
+  ApiConsumes,
+} from '@nestjs/swagger';
 import { PlotStatus } from '../../entities/plot.entity/plot.entity';
 import { UserRole } from '../../../users/entities/user.entity/user.entity';
 import { AuditLogInterceptor } from '../../../common/interceptors/audit-log.interceptor';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
+import { Response } from 'express';
 
 @ApiTags('Plots')
 @Controller('plots')
@@ -30,9 +37,24 @@ export class PlotsController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Post()
+  @ApiConsumes('multipart/form-data')
   @ApiOperation({ summary: 'Create a new plot' })
-  async create(@Body() createPlotDto: CreatePlotDto, @Request() req) {
-    return this.plotsService.create(createPlotDto, req.user);
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      { name: 'propertyImages', maxCount: 10 },
+      { name: 'legalDocuments', maxCount: 10 },
+    ]),
+  )
+  async create(
+    @Body() createPlotDto: CreatePlotDto,
+    @Request() req,
+    @UploadedFiles()
+    files: {
+      propertyImages?: Express.Multer.File[];
+      legalDocuments?: Express.Multer.File[];
+    },
+  ) {
+    return this.plotsService.create(createPlotDto, req.user, files);
   }
 
   @Get()
@@ -76,9 +98,25 @@ export class PlotsController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Put(':id')
+  @ApiConsumes('multipart/form-data')
   @ApiOperation({ summary: 'Update plot' })
-  async update(@Param('id') id: string, @Body() updateData: any, @Request() req) {
-    return this.plotsService.update(id, updateData, req.user.id);
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      { name: 'propertyImages', maxCount: 10 },
+      { name: 'legalDocuments', maxCount: 10 },
+    ]),
+  )
+  async update(
+    @Param('id') id: string,
+    @Body() updateData: any,
+    @Request() req,
+    @UploadedFiles()
+    files: {
+      propertyImages?: Express.Multer.File[];
+      legalDocuments?: Express.Multer.File[];
+    },
+  ) {
+    return this.plotsService.update(id, updateData, req.user.id, files);
   }
 
   @ApiBearerAuth()
@@ -87,6 +125,30 @@ export class PlotsController {
   @ApiOperation({ summary: 'Submit plot for approval' })
   async submit(@Param('id') id: string, @Request() req) {
     return this.plotsService.submitForApproval(id, req.user.id);
+  }
+
+  @Get('image/:id')
+  @ApiOperation({ summary: 'Get property image' })
+  async getImage(@Param('id') id: string, @Res() res: Response) {
+    const image = await this.plotsService.findImageById(id);
+    res.set({
+      'Content-Type': image.mimeType,
+      'Content-Length': image.data.length,
+      'Content-Disposition': `inline; filename="${image.fileName}"`,
+    });
+    res.send(image.data);
+  }
+
+  @Get('document/:id')
+  @ApiOperation({ summary: 'Get legal document' })
+  async getDocument(@Param('id') id: string, @Res() res: Response) {
+    const doc = await this.plotsService.findDocumentById(id);
+    res.set({
+      'Content-Type': doc.mimeType,
+      'Content-Length': doc.data.length,
+      'Content-Disposition': `attachment; filename="${doc.fileName}"`,
+    });
+    res.send(doc.data);
   }
 }
 

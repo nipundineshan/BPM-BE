@@ -8,6 +8,8 @@ import {
   OneToMany,
 } from 'typeorm';
 import { User } from '../../../users/entities/user.entity/user.entity';
+import { PropertyImage } from '../property-image.entity';
+import { LegalDocument } from '../legal-document.entity';
 
 export enum PlotStatus {
   DRAFT = 'draft',
@@ -59,11 +61,11 @@ export class Plot {
   @Column()
   registrationNumber: string;
 
-  @Column('simple-array', { nullable: true })
-  propertyImages: string[];
+  @OneToMany(() => PropertyImage, (image) => image.plot, { cascade: true })
+  propertyImages: PropertyImage[];
 
-  @Column('simple-array', { nullable: true })
-  legalDocuments: string[];
+  @OneToMany(() => LegalDocument, (doc) => doc.plot, { cascade: true })
+  legalDocuments: LegalDocument[];
 
   @Column({
     type: 'enum',

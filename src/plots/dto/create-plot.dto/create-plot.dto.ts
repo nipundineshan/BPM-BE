@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString, IsNumber, IsOptional, IsArray, IsUrl } from 'class-validator';
+import { IsNotEmpty, IsString, IsNumber, IsOptional } from 'class-validator';
 
 export class CreatePlotDto {
   @ApiProperty({ example: 'Sunshine Valley' })
@@ -62,13 +62,9 @@ export class CreatePlotDto {
   @IsNotEmpty()
   registrationNumber: string;
 
-  @ApiProperty({ example: ['http://image1.com', 'http://image2.com'], required: false })
-  @IsArray()
-  @IsOptional()
-  propertyImages?: string[];
+  @ApiProperty({ type: 'array', items: { type: 'string', format: 'binary' }, required: false })
+  propertyImages?: any[];
 
-  @ApiProperty({ example: ['http://doc1.com'], required: false })
-  @IsArray()
-  @IsOptional()
-  legalDocuments?: string[];
+  @ApiProperty({ type: 'array', items: { type: 'string', format: 'binary' }, required: false })
+  legalDocuments?: any[];
 }

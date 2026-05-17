@@ -17,6 +17,8 @@ import { StorageModule } from './storage/storage.module';
 
 import { User } from './users/entities/user.entity/user.entity';
 import { Plot } from './plots/entities/plot.entity/plot.entity';
+import { PropertyImage } from './plots/entities/property-image.entity';
+import { LegalDocument } from './plots/entities/legal-document.entity';
 import { Notification } from './notifications/entities/notification.entity';
 import { AuditLog } from './audit-logs/entities/audit-log.entity';
 import { Transaction } from './transactions/entities/transaction.entity';
@@ -38,7 +40,7 @@ import { Transaction } from './transactions/entities/transaction.entity';
         username: configService.get<string>('DB_USERNAME'),
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_DATABASE'),
-        entities: [User, Plot, Notification, AuditLog, Transaction],
+        entities: [User, Plot, PropertyImage, LegalDocument, Notification, AuditLog, Transaction],
         synchronize: true, // Set to false in production
       }),
     }),
