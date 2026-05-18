@@ -7,7 +7,7 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { UserRole } from '../../../users/entities/user.entity/user.entity';
 
 @ApiTags('NFT Operations')
-@Controller('nfts')
+@Controller('nft')
 export class NftController {
   constructor(private nftService: NftService) {}
 

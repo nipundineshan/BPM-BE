@@ -84,7 +84,7 @@ export class PlotsService {
 
     const plot = this.plotRepository.create({
       ...createPlotDto,
-      owner: user,
+      owner: { id: user.id } as any,
       status: PlotStatus.PENDING_APPROVAL,
     });
 
